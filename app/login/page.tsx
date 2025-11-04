@@ -116,7 +116,6 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Compte par défaut : <strong>admin</strong> / <strong>admin123</strong></p>
         </div>
       </div>
     </div>
