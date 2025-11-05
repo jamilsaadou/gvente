@@ -33,10 +33,13 @@ export async function POST(request: NextRequest) {
     
     // Set session cookie
     const cookieStore = await cookies();
+    // Only use secure cookies if explicitly enabled or on HTTPS
+    const isSecure = process.env.USE_SECURE_COOKIES === 'true';
     cookieStore.set('userId', user.id.toString(), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
+      path: '/',
       maxAge: 60 * 60 * 24 * 7 // 7 days
     });
     
