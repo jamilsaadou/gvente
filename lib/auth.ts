@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcryptjs';
-import db from './database';
+import { query, queryOne } from './database';
 import { User } from './types';
 
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
@@ -10,31 +10,29 @@ export async function hashPassword(password: string): Promise<string> {
   return hash(password, 10);
 }
 
-export function getUserByUsername(username: string): User | undefined {
-  return db.prepare('SELECT * FROM users WHERE username = ?').get(username) as User | undefined;
+export async function getUserByUsername(username: string): Promise<User | undefined> {
+  return await queryOne('SELECT * FROM users WHERE username = ?', [username]) as User | undefined;
 }
 
-export function getUserById(id: number): User | undefined {
-  return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | undefined;
+export async function getUserById(id: number): Promise<User | undefined> {
+  return await queryOne('SELECT * FROM users WHERE id = ?', [id]) as User | undefined;
 }
 
-export function getAllUsers(): User[] {
-  return db.prepare('SELECT * FROM users ORDER BY created_at DESC').all() as User[];
+export async function getAllUsers(): Promise<User[]> {
+  return await query('SELECT * FROM users ORDER BY created_at DESC') as User[];
 }
 
 export async function createUser(username: string, password: string, name: string, role: string): Promise<User> {
   const hashedPassword = await hashPassword(password);
-  const result = db.prepare('INSERT INTO users (username, password, name, role) VALUES (?, ?, ?, ?)').run(
-    username,
-    hashedPassword,
-    name,
-    role
-  );
+  const result = await query(
+    'INSERT INTO users (username, password, name, role) VALUES (?, ?, ?, ?)',
+    [username, hashedPassword, name, role]
+  ) as any;
   
-  return getUserById(result.lastInsertRowid as number)!;
+  return (await getUserById(result.insertId))!;
 }
 
-export function updateUser(id: number, data: { username?: string; name?: string; role?: string }): User {
+export async function updateUser(id: number, data: { username?: string; name?: string; role?: string }): Promise<User> {
   const updates: string[] = [];
   const values: any[] = [];
   
@@ -53,16 +51,16 @@ export function updateUser(id: number, data: { username?: string; name?: string;
   
   values.push(id);
   
-  db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+  await query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
   
-  return getUserById(id)!;
+  return (await getUserById(id))!;
 }
 
 export async function updateUserPassword(id: number, newPassword: string): Promise<void> {
   const hashedPassword = await hashPassword(newPassword);
-  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(hashedPassword, id);
+  await query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
 }
 
-export function deleteUser(id: number): void {
-  db.prepare('DELETE FROM users WHERE id = ?').run(id);
+export async function deleteUser(id: number): Promise<void> {
+  await query('DELETE FROM users WHERE id = ?', [id]);
 }

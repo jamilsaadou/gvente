@@ -50,6 +50,9 @@ export default function AdminPage() {
   const [newUser, setNewUser] = useState({ username: '', password: '', name: '', role: 'agent' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -438,7 +441,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {users.map((u) => (
+                  {users?.map((u) => (
                     <tr key={u.id}>
                       <td className="px-6 py-4 whitespace-nowrap">{u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{u.username}</td>
@@ -465,15 +468,68 @@ export default function AdminPage() {
 
         {activeTab === 'sales' && (
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold">Historique des ventes</h2>
-              <a
-                href="/api/sales/export"
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                <Download className="w-5 h-5" />
-                Exporter en CSV
-              </a>
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Historique des ventes</h2>
+                <button
+                  onClick={() => setShowExportOptions(!showExportOptions)}
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Download className="w-5 h-5" />
+                  Exporter en Excel
+                </button>
+              </div>
+              
+              {showExportOptions && (
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 className="font-semibold mb-3 text-gray-700">Options d'export</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date de début
+                      </label>
+                      <input
+                        type="date"
+                        value={exportStartDate}
+                        onChange={(e) => setExportStartDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date de fin
+                      </label>
+                      <input
+                        type="date"
+                        value={exportEndDate}
+                        onChange={(e) => setExportEndDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={`/api/sales/export${exportStartDate || exportEndDate ? `?start=${exportStartDate}&end=${exportEndDate}` : ''}`}
+                        className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex-1"
+                      >
+                        <Download className="w-4 h-4" />
+                        Exporter
+                      </a>
+                      <button
+                        onClick={() => {
+                          setExportStartDate('');
+                          setExportEndDate('');
+                        }}
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                      >
+                        Réinitialiser
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Laissez les dates vides pour exporter toutes les ventes
+                  </p>
+                </div>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -488,7 +544,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {sales.map((sale) => (
+                  {sales?.map((sale) => (
                     <tr key={sale.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">{sale.receipt_number}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{sale.buyer_firstname} {sale.buyer_name}</td>

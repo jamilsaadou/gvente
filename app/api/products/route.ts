@@ -3,7 +3,7 @@ import { getAllProducts } from '@/lib/sales';
 
 export async function GET() {
   try {
-    const products = getAllProducts();
+    const products = await getAllProducts();
     return NextResponse.json({ products });
   } catch (error) {
     console.error('Get products error:', error);

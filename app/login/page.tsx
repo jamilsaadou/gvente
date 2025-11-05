@@ -24,28 +24,36 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
+      
+      console.log('Login response:', { ok: response.ok, status: response.status, data });
 
       if (!response.ok) {
         throw new Error(data.error || 'Erreur de connexion');
       }
 
       // Redirect based on role
+      let redirectPath = '/';
       switch (data.user.role) {
         case 'admin':
-          router.push('/admin');
+          redirectPath = '/admin';
           break;
         case 'agent':
-          router.push('/agent');
+          redirectPath = '/agent';
           break;
         case 'controller':
-          router.push('/controller');
+          redirectPath = '/controller';
           break;
         default:
           throw new Error('Rôle non reconnu');
       }
+      
+      console.log('Redirecting to:', redirectPath);
+      
+      // Use window.location for more reliable redirect
+      window.location.href = redirectPath;
     } catch (err: any) {
+      console.error('Login error:', err);
       setError(err.message || 'Erreur de connexion');
-    } finally {
       setLoading(false);
     }
   };

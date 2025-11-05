@@ -14,7 +14,7 @@ export async function GET() {
       );
     }
     
-    const user = getUserById(parseInt(userId));
+    const user = await getUserById(parseInt(userId));
     
     if (!user) {
       return NextResponse.json(

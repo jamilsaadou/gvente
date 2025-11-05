@@ -10,7 +10,7 @@ async function checkAuth(requiredRole: 'admin' | 'agent' | 'controller' = 'admin
     return null;
   }
   
-  const user = getUserById(parseInt(userId));
+  const user = await getUserById(parseInt(userId));
   
   if (!user || user.role !== requiredRole) {
     return null;
@@ -30,7 +30,7 @@ export async function GET() {
       );
     }
     
-    const users = getAllUsers();
+    const users = await getAllUsers();
     
     return NextResponse.json({
       users: users.map(u => ({

@@ -25,7 +25,7 @@ export async function GET() {
       );
     }
     
-    const sales = getSalesByAgent(user.id);
+    const sales = await getSalesByAgent(user.id);
     
     return NextResponse.json({ sales });
   } catch (error) {

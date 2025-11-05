@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const sale = getSaleByReceiptNumber(receiptNumber);
+    const sale = await getSaleByReceiptNumber(receiptNumber);
     
     if (!sale) {
       return NextResponse.json(
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const validatedSale = validateSale(sale.id, user.id);
+    const validatedSale = await validateSale(sale.id, user.id);
     
     return NextResponse.json({ sale: validatedSale });
   } catch (error) {

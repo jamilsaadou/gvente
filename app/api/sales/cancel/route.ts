@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getUserById } from '@/lib/auth';
-import db from '@/lib/database';
+import { query } from '@/lib/database';
 
 async function getAuthUser() {
   const cookieStore = await cookies();
@@ -40,32 +40,36 @@ export async function POST(request: Request) {
     }
 
     // Check if sale exists and belongs to the agent
-    const sale = db.prepare(
-      'SELECT * FROM sales WHERE receipt_number = ? AND agent_id = ?'
-    ).get(receiptNumber, user.id) as any;
-
-    if (!sale) {
+    const sale = await query(
+      'SELECT * FROM sales WHERE receipt_number = ? AND agent_id = ?',
+      [receiptNumber, user.id]
+    ) as any[];
+    
+    if (!sale || sale.length === 0) {
       return NextResponse.json({ error: 'Reçu non trouvé ou non autorisé' }, { status: 404 });
     }
+    
+    const saleData = sale[0];
 
-    if (sale.status === 'validated') {
+    if (saleData.status === 'validated') {
       return NextResponse.json({ error: 'Impossible d\'annuler un reçu déjà validé' }, { status: 400 });
     }
 
-    if (sale.status === 'cancelled') {
+    if (saleData.status === 'cancelled') {
       return NextResponse.json({ error: 'Ce reçu est déjà annulé' }, { status: 400 });
     }
 
     // Cancel the sale
-    db.prepare(`
-      UPDATE sales 
-      SET status = 'cancelled',
-          cancelled_by = ?,
-          cancelled_at = CURRENT_TIMESTAMP,
-          cancellation_reason = ?,
-          cancellation_note = ?
-      WHERE receipt_number = ?
-    `).run(user.id, reason, note || null, receiptNumber);
+    await query(
+      `UPDATE sales 
+       SET status = 'cancelled',
+           cancelled_by = ?,
+           cancelled_at = CURRENT_TIMESTAMP,
+           cancellation_reason = ?,
+           cancellation_note = ?
+       WHERE receipt_number = ?`,
+      [user.id, reason, note || null, receiptNumber]
+    );
 
     return NextResponse.json({ 
       message: 'Reçu annulé avec succès',

@@ -25,7 +25,7 @@ export async function GET() {
       );
     }
     
-    const stats = getDashboardStats();
+    const stats = await getDashboardStats();
     
     return NextResponse.json({ stats });
   } catch (error) {

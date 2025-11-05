@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const matricule = searchParams.get('matricule');
     
-    let sales = getAllSales();
+    let sales = await getAllSales();
     
     // Filter by status if provided
     if (status) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const sale = createSale(user.id, buyerData, items);
+    const sale = await createSale(user.id, buyerData, items);
     
     return NextResponse.json({ sale });
   } catch (error) {
